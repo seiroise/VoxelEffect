@@ -1,0 +1,39 @@
+#pragma kernel Setup
+#pragma kernel Update
+
+#define THREAD [numthreads(8, 1, 1)]
+
+#include "../Voxel.cginc"
+#include "./VoxelParticle.cginc"
+
+int _W, _H, _D;
+uint _VoxelCount;
+StructuredBuffer<Voxel> _VoxelBuffer;
+
+float _DT;
+uint _ParticleCount;
+float _InitLifeTime;
+float3 _InitScale;
+RWStructuredBuffer<VoxelParticle> _ParticleBuffer;
+
+THREAD
+void Setup(uint3 dtid : SV_DispatchThreadID)
+{
+	uint idx = dtid.x;
+	if(idx >= _VoxelCount) return;
+
+	Voxel v = _VoxelBuffer[idx];
+	VoxelParticle particle;
+	particle.position = v.position;
+	particle.scale = _InitScale * v.fill;
+	particle.velocity = float3(0, 0, 0);
+	particle.lifeTime = _InitLifeTime * (float)v.fill;
+	_ParticleBuffer[idx] = particle;
+}
+
+THREAD
+void Update(uint3 dtid : SV_DispatchThreadID)
+{
+	uint idx = dtid.x;
+	if(idx >= _ParticleCount) return;
+}
